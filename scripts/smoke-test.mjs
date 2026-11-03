@@ -1,5 +1,6 @@
 // Tests the bridge without Firefox, using a fake WebSocket extension.
 import assert from "node:assert/strict";
+import http from "node:http";
 import WebSocket from "ws";
 import { Bridge, NOT_CONNECTED_MESSAGE } from "../server/src/bridge.js";
 
@@ -40,6 +41,31 @@ await check("token errado é rejeitado (4401)", async () => {
 await check("Origin http:// é rejeitado (4401)", async () => {
   const { closed } = await connect(TOKEN, "http://evil.example");
   assert.equal(await closed, 4401);
+});
+
+function getPair({ origin, host = `127.0.0.1:${PORT}` }) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({ method: "POST", host: "127.0.0.1", port: PORT, path: "/pair", headers: { host, ...(origin ? { origin } : {}) } }, (res) => {
+      let body = "";
+      res.on("data", (d) => (body += d));
+      res.on("end", () => resolve({ status: res.statusCode, body }));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+await check("/pair entrega o token só para moz-extension://", async () => {
+  const good = await getPair({ origin: "moz-extension://abc" });
+  assert.equal(good.status, 200);
+  assert.equal(JSON.parse(good.body).token, TOKEN);
+  assert.equal((await getPair({ origin: "https://evil.example" })).status, 403);
+  assert.equal((await getPair({})).status, 403);
+  assert.equal((await getPair({ origin: "moz-extension://abc", host: "evil.example" })).status, 403);
+});
+
+await check("waitConnected expira sem extensão", async () => {
+  assert.equal(await bridge.waitConnected(300), false);
 });
 
 let ext;

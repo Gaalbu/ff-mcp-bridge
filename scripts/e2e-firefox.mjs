@@ -54,7 +54,7 @@ async function startClient() {
     new StdioClientTransport({
       command: "node",
       args: [path.join(root, "server", "src", "index.js")],
-      env: { ...process.env, FF_MCP_PORT: String(PORT) },
+      env: { ...process.env, FF_MCP_PORT: String(PORT), FF_MCP_AUTOLAUNCH: "0" },
       stderr: "ignore",
     }),
   );

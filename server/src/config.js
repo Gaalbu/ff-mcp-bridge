@@ -7,6 +7,8 @@ export const HOST = "127.0.0.1";
 export const PORT = Number(process.env.FF_MCP_PORT) || 8765;
 export const TOKEN_DIR = path.join(os.homedir(), ".ff-mcp-bridge");
 export const TOKEN_PATH = path.join(TOKEN_DIR, "token");
+export const PROFILE_DIR = process.env.FF_MCP_PROFILE || path.join(TOKEN_DIR, "firefox-profile");
+export const AUTOLAUNCH = process.env.FF_MCP_AUTOLAUNCH !== "0";
 
 // Reuses the stored token, or creates a new 32-byte hex one on first start.
 export function loadOrCreateToken(tokenPath = TOKEN_PATH) {

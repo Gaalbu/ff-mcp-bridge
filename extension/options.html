@@ -14,8 +14,9 @@
 </head>
 <body>
   <h1>ff-mcp-bridge</h1>
-  <p><small>Token do arquivo <code>%USERPROFILE%\.ff-mcp-bridge\token</code> (gerado pelo servidor no primeiro start).</small></p>
-  <label for="token">Token</label>
+  <p><small>O pareamento é automático: a extensão busca o token no servidor local. Preencha o token só como reserva
+  (arquivo <code>%USERPROFILE%\.ff-mcp-bridge\token</code>) se o pareamento automático falhar.</small></p>
+  <label for="token">Token (opcional)</label>
   <input id="token" type="password" autocomplete="off" spellcheck="false">
   <label for="port">Porta</label>
   <input id="port" type="number" min="1" max="65535" value="8765">

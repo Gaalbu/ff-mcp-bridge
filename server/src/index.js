@@ -3,11 +3,20 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { Bridge } from "./bridge.js";
-import { HOST, PORT, TOKEN_PATH, loadOrCreateToken } from "./config.js";
+import { AUTOLAUNCH, HOST, PORT, PROFILE_DIR, TOKEN_PATH, loadOrCreateToken } from "./config.js";
+import { FirefoxLauncher } from "./launcher.js";
 
 // stdout belongs to the MCP protocol: everything else goes to stderr.
 const token = loadOrCreateToken();
 const bridge = new Bridge({ port: PORT, token, host: HOST });
+const launcher = new FirefoxLauncher({ profileDir: PROFILE_DIR });
+
+// Lazy start: give an already-open Firefox a few seconds to reconnect, then open one with the extension.
+async function ensureConnected() {
+  if (bridge.connected) return;
+  if (await bridge.waitConnected(5000)) return;
+  if (AUTOLAUNCH && launcher.launchOnce()) await bridge.waitConnected(40000);
+}
 
 console.error(`[ff-mcp-bridge] token em: ${TOKEN_PATH}`);
 console.error(`[ff-mcp-bridge] cole o token e a porta (${PORT}) nas opções da extensão Firefox.`);
@@ -30,6 +39,7 @@ function toContent(result) {
 function register(name, description, shape, method = name) {
   server.tool(name, description, shape, async (params) => {
     try {
+      await ensureConnected();
       const result = await bridge.request(method, params);
       return { content: toContent(result) };
     } catch (err) {
@@ -130,6 +140,7 @@ server.tool(
         await new Promise((r) => setTimeout(r, secs * 1000));
         return { content: [{ type: "text", text: `Waited ${secs}s` }] };
       }
+      await ensureConnected();
       const result = await bridge.request("computer", params);
       return { content: toContent(result) };
     } catch (err) {

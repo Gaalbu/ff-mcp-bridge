@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import http from "node:http";
 import { WebSocketServer } from "ws";
 
 export const NOT_CONNECTED_MESSAGE =
@@ -27,10 +28,12 @@ export class Bridge {
 
   start() {
     return new Promise((resolve, reject) => {
-      this.wss = new WebSocketServer({ host: this.host, port: this.port, maxPayload: 64 * 1024 * 1024 });
-      this.wss.once("listening", resolve);
-      this.wss.once("error", reject);
+      this.http = http.createServer((req, res) => this.#onHttp(req, res));
+      this.wss = new WebSocketServer({ server: this.http, maxPayload: 64 * 1024 * 1024 });
       this.wss.on("connection", (ws, req) => this.#onConnection(ws, req));
+      this.http.once("listening", resolve);
+      this.http.once("error", reject);
+      this.http.listen(this.port, this.host);
     });
   }
 
@@ -39,8 +42,34 @@ export class Bridge {
     return new Promise((resolve) => {
       if (!this.wss) return resolve();
       for (const c of this.wss.clients) c.terminate();
-      this.wss.close(() => resolve());
+      this.wss.close(() => this.http.close(() => resolve()));
     });
+  }
+
+  // Resolves true as soon as an extension is connected, or false after timeoutMs.
+  async waitConnected(timeoutMs) {
+    const end = Date.now() + timeoutMs;
+    while (Date.now() < end) {
+      if (this.connected) return true;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return this.connected;
+  }
+
+  // Auto-pairing: only a moz-extension:// origin on a loopback Host header gets the token.
+  // It is a POST because Firefox omits Origin on same-origin-privileged GETs from extensions but sends it on POST.
+  // Web pages send their own Origin (and the response has no CORS headers), so they cannot read it.
+  #onHttp(req, res) {
+    const host = req.headers.host ?? "";
+    const origin = req.headers.origin ?? "";
+    const hostOk = host === `127.0.0.1:${this.port}` || host === `localhost:${this.port}`;
+    if (req.method === "POST" && req.url === "/pair" && hostOk && origin.startsWith("moz-extension://")) {
+      res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+      res.end(JSON.stringify({ token: this.token }));
+      return;
+    }
+    res.writeHead(403, { "content-type": "text/plain" });
+    res.end("forbidden");
   }
 
   get connected() {

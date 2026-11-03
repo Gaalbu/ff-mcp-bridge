@@ -233,6 +233,16 @@ async function onMessage(event) {
   }
 }
 
+async function pair(port) {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/pair`, { method: "POST", cache: "no-store" });
+    if (!res.ok) return null;
+    return (await res.json()).token || null;
+  } catch {
+    return null;
+  }
+}
+
 async function connect() {
   clearTimeout(reconnectTimer);
   if (ws) {
@@ -244,14 +254,18 @@ async function connect() {
     }
     ws = null;
   }
-  const { token, port } = await browser.storage.local.get(["token", "port"]);
+  const stored = await browser.storage.local.get(["token", "port"]);
+  const portNumber = stored.port || 8765;
+  // Auto-pairing: the server hands its token only to moz-extension:// origins; the manual token is a fallback.
+  const token = (await pair(portNumber)) || stored.token;
   if (!token) {
     setBadge(false);
+    scheduleReconnect();
     return;
   }
   let sock;
   try {
-    sock = new WebSocket(`ws://127.0.0.1:${port || 8765}/?token=${encodeURIComponent(token)}`);
+    sock = new WebSocket(`ws://127.0.0.1:${portNumber}/?token=${encodeURIComponent(token)}`);
   } catch {
     setBadge(false);
     scheduleReconnect();
