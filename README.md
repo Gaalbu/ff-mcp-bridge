@@ -1,4 +1,4 @@
-# ff-mcp-bridge
+﻿# ff-mcp-bridge
 
 **EN:** A Firefox extension plus a local MCP server that lets an MCP client (e.g. Claude Code) control your real Firefox: tabs, navigation, page reading, clicks, typing, screenshots, JS, console and network metadata. Compatible with Claude Code via MCP.
 
@@ -77,7 +77,7 @@ $env:MOZ_REMOTE_ALLOW_SYSTEM_ACCESS='1'; npm run e2e   # Firefox headless + MCP 
 | `scripts/e2e-firefox.mjs`: Firefox 159 headless + extensão + cliente MCP real via stdio (conexão, tabs, navigate, read_page, find, get_page_text, screenshot, clique, formulário com Enter, scroll, JS content/page, console, rede, página restrita, tabs_close, reconexão) | **Testado: 17/17 passam** (site local em 127.0.0.1 e example.com → clique no link até iana.org) |
 | Estado do badge (`ON` verde / `OFF` vermelho, e a volta a `ON` após reiniciar o servidor) | **Testado** lendo o estado da `browserAction` (Firefox headless); aparência visual do ícone não conferida |
 | `claude mcp add` + `claude mcp list` | **Testado**: `ff-mcp-bridge ... √ Connected` |
-| Sessão de chat do Claude Code chamando as ferramentas | Não testado (o `claude -p` aninhado pedia `/login`); o mesmo caminho foi exercitado pelo cliente MCP do e2e |
+| Sessão real do Claude Code (`claude -p`) chamando `tabs_context`, `navigate`, `read_page`, screenshot e clique no link do example.com | **Testado**: terminou em `https://www.iana.org/help/example-domains`, sem erros |
 | DuckDuckGo, captchas, editores ricos | Não testado |
 
 ## Roadmap
