@@ -191,6 +191,23 @@ try {
     ok(r.text.includes("127.0.0.1"), r.text);
   });
 
+  await check("site externo: example.com, ler, screenshot e clicar no link", async () => {
+    const created = await tool("tabs_create", { url: "https://example.com" });
+    const id = JSON.parse(created.text).tabId;
+    const page = await tool("read_page", { tabId: id, filter: "interactive" });
+    ok(page.text.includes("Example Domain") || /link/.test(page.text), page.text);
+    const shot = await client.callTool({ name: "computer", arguments: { action: "screenshot", tabId: id } });
+    ok(shot.content.some((c) => c.type === "image"), "sem imagem");
+    const ref = page.text.match(/link.*\[(ref_\d+)\]/)?.[1];
+    ok(ref, page.text);
+    await tool("computer", { action: "left_click", ref, tabId: id });
+    await sleep(3000);
+    const ctx = JSON.parse((await tool("tabs_context")).text).find((t) => t.tabId === id);
+    ok(/iana\.org/.test(ctx.url), ctx.url);
+    await tool("tabs_close", { tabId: id });
+    return ctx.url;
+  });
+
   await check("página restrita devolve erro amigável sem travar", async () => {
     const [{ tabId: optTab }] = JSON.parse((await tool("tabs_context")).text).filter((t) => t.url.startsWith("moz-extension:"));
     const t0 = Date.now();
