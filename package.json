@@ -4,12 +4,18 @@
   "private": true,
   "description": "Firefox extension + local MCP server so an MCP client can control Firefox",
   "license": "MIT",
-  "workspaces": ["server"],
+  "workspaces": [
+    "server"
+  ],
   "scripts": {
     "start": "node server/src/index.js",
     "icons": "node scripts/make-icons.mjs",
     "smoke": "node scripts/smoke-test.mjs",
+    "e2e": "node scripts/e2e-firefox.mjs",
     "lint:ext": "npx --yes web-ext lint --source-dir extension",
     "run:ext": "npx --yes web-ext run --source-dir extension --firefox-profile ff-mcp-dev --keep-profile-changes"
+  },
+  "devDependencies": {
+    "selenium-webdriver": "^4.52.0"
   }
 }

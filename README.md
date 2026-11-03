@@ -45,6 +45,13 @@ Para uso permanente (sem recarregar a cada reinício): `npx web-ext sign --chann
 
 Todas aceitam `tabId` opcional (padrão: aba ativa).
 
+## Testes
+
+```powershell
+npm run smoke                                  # bridge sem Firefox
+$env:MOZ_REMOTE_ALLOW_SYSTEM_ACCESS='1'; npm run e2e   # Firefox headless + MCP real (precisa de Firefox instalado)
+```
+
 ## Segurança
 
 - O servidor escuta **somente em `127.0.0.1`** (porta `8765`, mude com `FF_MCP_PORT`).
@@ -67,11 +74,10 @@ Todas aceitam `tabId` opcional (padrão: aba ativa).
 |---|---|
 | `scripts/smoke-test.mjs` (token errado, Origin http, timeout, sem extensão, erro propagado, desconexão) | **Testado: 7/7 passam** |
 | `web-ext lint` | **Testado: 0 erros**; avisos sobre CSP `unsafe-eval` (esperado) |
-| Carregar a extensão e badge `ON` no Firefox | Não testado |
-| Fluxo real com Claude Code (abrir example.com, ler, screenshot, clicar) | Não testado |
-| Formulário (digitar + Enter) | Não testado |
-| Página restrita (`about:preferences`) | Não testado |
-| Reconexão automática | Não testado |
+| `scripts/e2e-firefox.mjs`: Firefox 159 headless + extensão + cliente MCP real via stdio (conexão, tabs, navigate, read_page, find, get_page_text, screenshot, clique, formulário com Enter, scroll, JS content/page, console, rede, página restrita, tabs_close, reconexão) | **Testado: 15/15 passam** (site local em 127.0.0.1) |
+| Badge `ON`/`OFF` visível no ícone | Não testado (headless) |
+| Sessão interativa real com o Claude Code, `claude mcp add` | Não testado |
+| Sites externos (example.com, DuckDuckGo), captchas, editores ricos | Não testado |
 
 ## Roadmap
 

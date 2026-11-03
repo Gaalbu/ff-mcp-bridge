@@ -592,7 +592,7 @@ if (!window.__ffmcpLoaded) {
         } catch {
           // never break the page
         }
-        return original.apply(pageConsole, args);
+        return original.call(pageConsole, ...args);
       }, pageWin);
     }
   } catch (err) {
