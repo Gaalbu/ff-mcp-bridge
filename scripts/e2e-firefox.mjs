@@ -109,6 +109,26 @@ try {
     ok(r.text.includes("tabId"), "sem tabs na resposta");
   });
 
+  async function readBadge() {
+    driver.setContext(firefox.Context.CHROME);
+    try {
+      // The toolbar button is not in the DOM until the extensions panel opens, so read the action state directly.
+      return await driver.executeScript(`
+        const { ExtensionParent } = ChromeUtils.importESModule("resource://gre/modules/ExtensionParent.sys.mjs");
+        const ext = WebExtensionPolicy.getByID("ff-mcp-bridge@local").extension;
+        const ba = ExtensionParent.apiManager.global.browserActionFor(ext);
+        return ba.action.getProperty(null, "badgeText") + "|" + ba.action.getProperty(null, "badgeBackgroundColor").slice(0, 3).join(",");`);
+    } finally {
+      driver.setContext(firefox.Context.CONTENT);
+    }
+  }
+
+  await check("badge ON (verde) quando conectado", async () => {
+    const b = await readBadge();
+    ok(b.startsWith("ON|"), b);
+    return b;
+  });
+
   let tabId;
   await check("tabs_create + navigate (site local)", async () => {
     const created = await tool("tabs_create", { url: base });
@@ -221,11 +241,17 @@ try {
     ok(!r.isError, r.text);
   });
 
-  await check("reconexão após reiniciar o servidor", async () => {
+  await check("reconexão após reiniciar o servidor (badge OFF → ON)", async () => {
     await client.close();
-    await sleep(500);
+    await sleep(1500);
+    const off = await readBadge();
+    ok(off.startsWith("OFF|"), off);
     await startClient();
     await waitConnected(60000);
+    await sleep(500);
+    const on = await readBadge();
+    ok(on.startsWith("ON|"), on);
+    return `${off} → ${on}`;
   });
 } finally {
   await driver.quit().catch(() => {});
