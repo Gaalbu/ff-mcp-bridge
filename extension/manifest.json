@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "ff-mcp-bridge",
+  "version": "0.1.0",
+  "description": "Local bridge that lets an MCP client control this Firefox.",
+  "browser_specific_settings": { "gecko": { "id": "ff-mcp-bridge@local", "strict_min_version": "115.0", "data_collection_permissions": { "required": ["none"] } } },
+  "permissions": ["tabs", "activeTab", "storage", "webNavigation", "webRequest", "<all_urls>"],
+  "background": { "scripts": ["background.js"], "persistent": true },
+  "browser_action": {
+    "default_title": "ff-mcp-bridge",
+    "default_icon": { "48": "icons/icon-48.png", "96": "icons/icon-96.png" }
+  },
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["content.js"], "run_at": "document_start", "all_frames": false }
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "icons": { "48": "icons/icon-48.png", "96": "icons/icon-96.png" }
+}

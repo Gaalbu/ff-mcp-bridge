@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>ff-mcp-bridge</title>
+  <style>
+    body { font: 14px system-ui, sans-serif; max-width: 520px; margin: 2em auto; padding: 0 1em; }
+    label { display: block; margin-top: 1em; font-weight: 600; }
+    input { width: 100%; padding: .4em; box-sizing: border-box; font-family: monospace; }
+    button { margin-top: 1.2em; padding: .5em 1.2em; }
+    #status { margin-left: 1em; }
+    small { color: #555; }
+  </style>
+</head>
+<body>
+  <h1>ff-mcp-bridge</h1>
+  <p><small>Token do arquivo <code>%USERPROFILE%\.ff-mcp-bridge\token</code> (gerado pelo servidor no primeiro start).</small></p>
+  <label for="token">Token</label>
+  <input id="token" type="password" autocomplete="off" spellcheck="false">
+  <label for="port">Porta</label>
+  <input id="port" type="number" min="1" max="65535" value="8765">
+  <button id="save">Salvar e reconectar</button><span id="status"></span>
+  <script src="options.js"></script>
+</body>
+</html>
